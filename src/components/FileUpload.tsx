@@ -1,14 +1,24 @@
 
 import React, { useState, useRef } from 'react';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, Play, RefreshCcw } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 
 interface FileUploadProps {
   onFileSelected: (file: File) => void;
+  onAnalyzeClick: () => void;
+  onReset: () => void;
+  isProcessing: boolean;
+  hasResults: boolean;
 }
 
-const FileUpload: React.FC<FileUploadProps> = ({ onFileSelected }) => {
+const FileUpload: React.FC<FileUploadProps> = ({ 
+  onFileSelected, 
+  onAnalyzeClick,
+  onReset,
+  isProcessing,
+  hasResults
+}) => {
   const { toast } = useToast();
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -71,6 +81,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelected }) => {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    onReset();
   };
 
   return (
@@ -96,10 +107,31 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelected }) => {
               {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
             </span>
           </div>
+          
+          <div className="flex gap-3 mt-4 w-full justify-center">
+            <Button 
+              onClick={onAnalyzeClick}
+              disabled={isProcessing}
+              className="w-1/2"
+            >
+              <Play size={16} />
+              Analyze
+            </Button>
+            <Button 
+              onClick={clearSelectedFile}
+              variant="outline"
+              className="w-1/2"
+            >
+              <RefreshCcw size={16} />
+              Reset
+            </Button>
+          </div>
         </div>
       ) : (
         <div
-          className={`drop-area ${isDragOver ? 'drag-over' : ''}`}
+          className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center transition-colors ${
+            isDragOver ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/20'
+          } cursor-pointer`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
@@ -122,6 +154,19 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelected }) => {
               />
             </Button>
           </div>
+        </div>
+      )}
+
+      {hasResults && (
+        <div className="mt-4">
+          <Button 
+            variant="outline" 
+            onClick={clearSelectedFile} 
+            className="w-full"
+          >
+            <RefreshCcw size={16} className="mr-2" />
+            Analyze Another Video
+          </Button>
         </div>
       )}
     </div>

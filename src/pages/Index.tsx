@@ -6,7 +6,7 @@ import ResultsDisplay from '@/components/ResultsDisplay';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { recognizeActivity } from '@/services/activityRecognition';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -14,13 +14,19 @@ const Index = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const { toast } = useToast();
 
-  const handleFileSelected = async (selectedFile: File) => {
+  const handleFileSelected = (selectedFile: File) => {
     setFile(selectedFile);
+    // Only set the file, don't process automatically
+  };
+
+  const handleAnalyzeClick = async () => {
+    if (!file) return;
+    
     setIsProcessing(true);
     setActivities([]);
 
     try {
-      const results = await recognizeActivity(selectedFile);
+      const results = await recognizeActivity(file);
       setActivities(results);
       
       // Toast notification for the detected activity
@@ -43,6 +49,12 @@ const Index = () => {
     }
   };
 
+  const handleReset = () => {
+    setFile(null);
+    setActivities([]);
+    setIsProcessing(false);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -60,7 +72,13 @@ const Index = () => {
           <div className="lg:col-span-2">
             <div className="sticky top-8">
               <h2 className="text-2xl font-bold mb-6">Upload Video</h2>
-              <FileUpload onFileSelected={handleFileSelected} />
+              <FileUpload 
+                onFileSelected={handleFileSelected}
+                onAnalyzeClick={handleAnalyzeClick}
+                onReset={handleReset}
+                isProcessing={isProcessing}
+                hasResults={activities.length > 0}
+              />
               
               {file && !isProcessing && activities.length > 0 && (
                 <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -78,7 +96,15 @@ const Index = () => {
               isLoading={isProcessing} 
             />
             
-            {!isProcessing && activities.length === 0 && (
+            {!isProcessing && activities.length === 0 && file && (
+              <div className="text-center py-16 border border-dashed rounded-lg">
+                <p className="text-muted-foreground">
+                  Click the Analyze button to process the video
+                </p>
+              </div>
+            )}
+
+            {!isProcessing && activities.length === 0 && !file && (
               <div className="text-center py-16 text-muted-foreground">
                 <p>Upload a video to see activity recognition results</p>
               </div>
