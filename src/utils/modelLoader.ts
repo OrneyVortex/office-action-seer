@@ -1,4 +1,5 @@
 import * as tf from '@tensorflow/tfjs';
+import { Activity } from '@/components/ActivityCard';
 
 // Cache the model to avoid reloading
 let cachedModel: tf.LayersModel | null = null;
