@@ -21,7 +21,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ activities, isLoading }
         <CardContent className="flex flex-col items-center py-10">
           <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
           <p className="mt-4 text-muted-foreground">
-            Analyzing frames and detecting activity patterns...
+            Extracting features and analyzing video frames...
           </p>
         </CardContent>
       </Card>
@@ -45,7 +45,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ activities, isLoading }
             Detected Activity: <span className="text-primary capitalize">{topActivity?.name}</span>
           </CardTitle>
           <CardDescription>
-            The TensorFlow.js model analyzed the video and identified the following activities with their confidence levels.
+            The TensorFlow.js model analyzed {highConfidenceActivities.length} frames from your video and extracted visual features to identify the following activities.
           </CardDescription>
         </CardHeader>
         <CardContent>

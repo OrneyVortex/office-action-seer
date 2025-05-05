@@ -1,7 +1,7 @@
 
 import { Activity } from '@/components/ActivityCard';
 import * as tf from '@tensorflow/tfjs';
-import { loadModel, processVideo, ACTIVITY_CLASSES } from '@/utils/modelLoader';
+import { loadModel, processVideo, extractFeatures, classifyActivities, ACTIVITY_CLASSES } from '@/utils/modelLoader';
 
 export const recognizeActivity = async (videoFile: File): Promise<Activity[]> => {
   console.log('Processing video file with TensorFlow.js:', videoFile.name);
@@ -11,50 +11,18 @@ export const recognizeActivity = async (videoFile: File): Promise<Activity[]> =>
     const model = await loadModel();
     
     // Process the video and get input tensor
-    const inputTensor = await processVideo(videoFile);
-
-    // Run inference
-    const predictions = await model.predict(inputTensor) as tf.Tensor;
+    const frameTensors = await processVideo(videoFile);
+    console.log('Video processed, extracting features...');
     
-    // For MobileNet which has 1000 classes, we'll map to our activity classes
-    // In a real-world scenario, you would have a model trained specifically for activity recognition
-    const values = await predictions.data();
+    // Extract features from the frames
+    const features = await extractFeatures(frameTensors, model);
+    console.log('Features extracted, classifying activities...');
+    
+    // Classify activities based on the features
+    const results = classifyActivities(features);
     
     // Clean up tensors to prevent memory leaks
-    tf.dispose([inputTensor, predictions]);
-    
-    // Map the predictions to our activity classes
-    // For demo purposes, we'll use a reasonable mapping instead of random values
-    const results: Activity[] = ACTIVITY_CLASSES.map((name, index) => {
-      // Weighted mapping based on filename for demo purposes
-      let confidence = 1 + Math.random() * 10;
-      const fileName = videoFile.name.toLowerCase();
-      
-      if (fileName.includes(name)) {
-        confidence = 80 + Math.random() * 15; // Higher confidence if the name is in the filename
-      } else if (
-        (name === 'sitting' && fileName.includes('desk')) ||
-        (name === 'typing' && fileName.includes('keyboard')) ||
-        (name === 'reading' && fileName.includes('book')) ||
-        (name === 'walking' && fileName.includes('move'))
-      ) {
-        confidence = 60 + Math.random() * 20; // Context-based boost
-      }
-      
-      return {
-        name,
-        confidence,
-        isActive: false
-      };
-    });
-    
-    // Sort by confidence (highest first)
-    results.sort((a, b) => b.confidence - a.confidence);
-    
-    // Mark the highest confidence as active
-    if (results.length > 0) {
-      results[0].isActive = true;
-    }
+    tf.dispose(frameTensors);
     
     return results;
   } catch (error) {
