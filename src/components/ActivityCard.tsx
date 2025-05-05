@@ -13,12 +13,6 @@ interface ActivityCardProps {
   activity: Activity;
 }
 
-const getConfidenceColor = (confidence: number): string => {
-  if (confidence > 75) return 'bg-green-500';
-  if (confidence > 50) return 'bg-yellow-500';
-  return 'bg-gray-400';
-};
-
 const ActivityCard: React.FC<ActivityCardProps> = ({ activity }) => {
   return (
     <div 
@@ -39,22 +33,11 @@ const ActivityCard: React.FC<ActivityCardProps> = ({ activity }) => {
       
       <Progress 
         value={activity.confidence} 
-        className={`h-2 ${
-          activity.isActive ? 'bg-primary/20' : 'bg-muted'
-        }`}
+        className="h-2"
       />
       
-      <div className="flex justify-between items-center mt-1">
-        <span className="text-xs text-muted-foreground">
-          {activity.confidence < 30 ? 'Low confidence' : 
-           activity.confidence < 70 ? 'Medium confidence' : 
-           'High confidence'}
-        </span>
-        <span className={`text-sm font-medium ${
-          activity.isActive ? 'text-primary' : 'text-muted-foreground'
-        }`}>
-          {activity.confidence.toFixed(1)}%
-        </span>
+      <div className="text-sm text-right mt-1 font-medium">
+        {activity.confidence.toFixed(1)}%
       </div>
     </div>
   );
